@@ -249,8 +249,16 @@ function getJSON(obj) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  const str = JSON.parse(json);
+
+  const obj = Object.create(proto);
+
+  Object.keys(str).forEach((key) => {
+    obj[key] = str[key];
+  });
+
+  return obj;
 }
 
 /**
@@ -328,8 +336,18 @@ function sortCitiesArray(arr) {
  *    "Poland" => ["Lodz"]
  *   }
  */
-function group(/* array, keySelector, valueSelector */) {
-  throw new Error('Not implemented');
+function group(array, keySelector, valueSelector) {
+  const map = new Map();
+  array.map((item) => {
+    const key = keySelector(item);
+    const value = valueSelector(item);
+    if (!map.has(key)) {
+      map.set(key, []);
+    }
+    map.get(key).push(value);
+    return true;
+  });
+  return map;
 }
 
 /**
@@ -387,8 +405,12 @@ function group(/* array, keySelector, valueSelector */) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  constructor() {
+    this.element = '';
+  },
+
+  element(value) {
+    this.element = value;
   },
 
   id(/* value */) {
@@ -413,6 +435,10 @@ const cssSelectorBuilder = {
 
   combine(/* selector1, combinator, selector2 */) {
     throw new Error('Not implemented');
+  },
+
+  stringify() {
+    return `${this.element}`;
   },
 };
 
