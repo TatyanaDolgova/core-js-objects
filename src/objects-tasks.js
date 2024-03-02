@@ -404,41 +404,120 @@ function group(array, keySelector, valueSelector) {
  *  For more examples see unit tests.
  */
 
-const cssSelectorBuilder = {
-  constructor() {
-    this.element = '';
-  },
-
-  element(value) {
-    this.element = value;
-  },
-
-  id(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  class(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  attr(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
-  },
-
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
-  },
+class Selector {
+  constructor(value) {
+    this.value = value;
+  }
 
   stringify() {
-    return `${this.element}`;
+    return this.value;
+  }
+
+  id(id) {
+    return new Id(id);
+  }
+
+  addClass(classValue) {
+    this.value += `${new Class(classValue)}`
+    return this.value;
+  }
+
+  addAttr(attr) {
+    this.value += `${new Class(attr)}`
+    return this.value;
+  }
+}
+
+class Id {
+  constructor(id) {
+    this.id = id;
+  }
+
+  stringify() {
+    return `#${this.id}`;
+  }
+}
+
+class Class {
+  constructor(classValue) {
+    this.classValue = classValue;
+  }
+
+  stringify() {
+    return `.${this.classValue}`;
+  }
+}
+
+class Attribute {
+  constructor(classValue) {
+    this.classValue = classValue;
+  }
+
+  stringify() {
+    return `[${this.classValue}]`;
+  }
+}
+
+class PseudoClass {
+  constructor(classValue) {
+    this.classValue = classValue;
+  }
+
+  stringify() {
+    return `:${this.classValue}`;
+  }
+}
+
+class PseudoElement {
+  constructor(classValue) {
+    this.classValue = classValue;
+  }
+
+  stringify() {
+    return `::${this.classValue}`;
+  }
+}
+
+class Combine {
+  constructor(selector1, combinator, selector2) {
+    this.selector1 = selector1;
+    this.selector2 = selector2;
+    this.combinator = combinator;
+  }
+
+  stringify() {
+    return `${this.selector1} ${this.combinator} ${this.selector2}`;
+  }
+}
+
+const cssSelectorBuilder = {
+  element(value) {
+    return new Selector(value);
+  },
+
+  id(value) {
+
+    return new Id(value);
+  },
+
+  class(value) {
+    return new Class(value);
+  },
+
+  attr(value) {
+    return new Attribute(value);
+  },
+
+  pseudoClass(value) {
+    return new PseudoClass(value);
+  },
+
+  pseudoElement(value) {
+    return new PseudoElement(value);
+  },
+
+  combine(selector1, combinator, selector2) {
+    return new Combine(selector1, combinator, selector2);
   },
 };
 
