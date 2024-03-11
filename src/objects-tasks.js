@@ -403,63 +403,125 @@ function group(array, keySelector, valueSelector) {
  *
  *  For more examples see unit tests.
  */
-const element = {
-  value: '',
-
-  stringify() {
-    return `${this.value}`;
-  },
-
-  id(value) {
-    return IdSelector.create(`${this.value}#${value}`);
-  },
-}
-
-const IdSelector = {
-  create(value) {
-    const instance = Object.create(this);
-    instance.value = value;
-    return instance;
-  },
-
-  stringify() {
-    return this.value;
-  },
-};
 
 const cssSelectorBuilder = {
-  value: '',
+  string: '',
+  hasElement: false,
+  hasId: false,
+  hasPseudoClass: false,
+  maxValue: 0,
 
   element(value) {
-    element.value = value;
-    return element;
+    if (this.hasElement) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+
+    if (this.maxValue > 1) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    const newBuilder = this.createNewObject(value, 1);
+    newBuilder.hasElement = true;
+    return newBuilder;
   },
 
   id(value) {
-    return IdSelector.create(`${this.value}#${value}`);
+    if (this.hasId) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+
+    if (this.maxValue > 2) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    const newBuilder = this.createNewObject(`#${value}`, 2);
+    newBuilder.hasId = true;
+    return newBuilder;
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    if (this.maxValue > 3) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    const newBuilder = this.createNewObject(`.${value}`, 3);
+    return newBuilder;
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    if (this.maxValue > 4) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    const newBuilder = this.createNewObject(`[${value}]`, 4);
+    return newBuilder;
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    if (this.maxValue > 5) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    const newBuilder = this.createNewObject(`:${value}`, 5);
+    return newBuilder;
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    if (this.maxValue > 6) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+
+    if (this.hasPseudoClass) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    const newBuilder = this.createNewObject(`::${value}`, 6);
+    newBuilder.hasPseudoClass = true;
+    return newBuilder;
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    this.string = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return this;
+  },
+
+  stringify() {
+    const { string } = this;
+    this.string = '';
+    return string;
+  },
+
+  createNewObject(string, maxValue) {
+    const newBuilder = Object.create(this);
+    newBuilder.maxValue = maxValue;
+    newBuilder.string += string;
+
+    return newBuilder;
+  },
+
+  validate(value) {
+    if (this.maxValue > value) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
   },
 };
-
 
 module.exports = {
   shallowCopy,
